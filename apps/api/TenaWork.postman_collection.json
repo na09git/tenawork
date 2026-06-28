@@ -1,0 +1,309 @@
+{
+  "info": {
+    "name": "TenaWork API",
+    "description": "Complete API collection for the TenaWork health job matching platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3002",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/health"
+      }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (Employee)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', res.data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"EMPLOYEE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register (Employer)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', res.data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"hospital.admin@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"EMPLOYER\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', res.data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/refresh",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employee",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/employees/profile",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/employees/profile",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": \"Addis Ababa\",\n  \"workType\": \"Full-time\",\n  \"salaryMin\": 10000,\n  \"salaryMax\": 20000,\n  \"institutionType\": \"Hospital\",\n  \"languages\": [\"Amharic\", \"English\"],\n  \"culture\": \"Collaborative\",\n  \"healthPriorities\": [\"Primary Care\"],\n  \"freeText\": \"Experienced nurse looking for hospital work.\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employer",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/employers/profile",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/employers/profile",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyName\": \"Addis General Hospital\",\n  \"location\": \"Addis Ababa\",\n  \"institutionType\": \"Hospital\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "Get All Jobs (Public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs"],
+              "query": [
+                { "key": "location", "value": "Addis Ababa", "disabled": true },
+                { "key": "workType", "value": "Full-time", "disabled": true },
+                { "key": "institutionType", "value": "Hospital", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Job By ID (Public)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/jobs/{{jobId}}"
+          }
+        },
+        {
+          "name": "Create Job (Employer only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.collectionVariables.set('jobId', res.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/jobs",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Nurse\",\n  \"location\": \"Addis Ababa\",\n  \"workType\": \"Full-time\",\n  \"salaryMin\": 15000,\n  \"salaryMax\": 25000,\n  \"institutionType\": \"Hospital\",\n  \"languages\": [\"Amharic\", \"English\"],\n  \"culture\": \"Collaborative\",\n  \"healthPriorities\": [\"Primary Care\"],\n  \"description\": \"We are looking for an experienced senior nurse.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Job (Employer only)",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/jobs/{{jobId}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Lead Nurse\",\n  \"salaryMin\": 18000,\n  \"salaryMax\": 30000\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Job (Employer only, soft delete)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/jobs/{{jobId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Matching",
+      "item": [
+        {
+          "name": "Match Employee to Jobs",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/match/employee",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Match Employer to Candidates",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/match/employer",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"desiredProfile\": {\n    \"location\": \"Addis Ababa\",\n    \"workType\": \"Full-time\",\n    \"institutionType\": \"Hospital\",\n    \"languages\": [\"Amharic\"],\n    \"healthPriorities\": [\"Primary Care\"]\n  }\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

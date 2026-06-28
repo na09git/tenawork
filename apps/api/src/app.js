@@ -1,17 +1,35 @@
-import express from "express";
-import cors from "cors";
+// ACTION: CREATE
+// FILE: src/app.js
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+
+const authRoutes = require("./routes/auth");
+const employeeRoutes = require("./routes/employees");
+const employerRoutes = require("./routes/employers");
+const jobRoutes = require("./routes/jobs");
+const matchRoutes = require("./routes/match");
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
-app.use(cors());
+// Middleware
+app.use(cors({ origin: "*" }));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "OK", message: "API is running" });
+// Health Check
+app.get("/api/health", (req, res) => {
+  res.json({ success: true, service: "tenawork-api" });
 });
 
-// Setup routes here
-// app.use('/api/auth', authRoutes);
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/employees", employeeRoutes);
+app.use("/api/employers", employerRoutes);
+app.use("/api/jobs", jobRoutes);
+app.use("/api/match", matchRoutes);
 
-export default app;
+// Error Handling
+app.use(errorHandler);
+
+module.exports = app;
