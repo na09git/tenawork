@@ -1,13 +1,14 @@
-import React from 'react';
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "react-hot-toast";
+import queryClient from "@/lib/queryClient";
+import AppRouter from "@/routes";
 
 function App() {
   return (
-    <div className="app">
-      <header>
-        <h1>Welcome to Tenawork</h1>
-        <p>Monorepo configuration successful.</p>
-      </header>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <AppRouter />
+      <Toaster position="top-right" />
+    </QueryClientProvider>
   );
 }
 
