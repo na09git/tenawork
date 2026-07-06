@@ -1,1 +1,0 @@
-import{j as r}from"./index-DRPW_9yw.js";function o(){return r.jsx("div",{className:"rounded-2xl border border-slate-200 bg-white p-6 shadow-sm",children:"Professional dashboard placeholder"})}export{o as default};
