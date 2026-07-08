@@ -12,7 +12,12 @@ export function AuthProvider({ children }) {
     localStorage.setItem("user", JSON.stringify(nextUser));
   };
 
-  const value = useMemo(() => ({ user, login }), [user]);
+  const logout = () => {
+    setUser(null);
+    import("@/utils/token").then((m) => m.logout());
+  };
+
+  const value = useMemo(() => ({ user, login, logout }), [user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
