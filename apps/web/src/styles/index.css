@@ -1,26 +1,48 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,450..600&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap");
+
+/* Register design tokens as real Tailwind utilities (bg-brand-600, font-display, etc.) */
+@theme {
+  --color-ink: #10241e;
+  --color-canvas: #ffffff;
+
+  --color-brand-50: #eaf4ef;
+  --color-brand-100: #cfe6d9;
+  --color-brand-400: #2e8a63;
+  --color-brand-600: #0b6e4f;
+  --color-brand-700: #095a41;
+  --color-brand-900: #063b2a;
+
+  --color-accent-400: #d9ae5c;
+  --color-accent-500: #c99a3d;
+  --color-accent-600: #a87c2a;
+
+  --color-slate-50: #f6f7f6;
+  --color-slate-100: #e9ece9;
+  --color-slate-400: #8a948e;
+  --color-slate-500: #5b6660;
+  --color-slate-700: #374039;
+
+  --font-display: "Fraunces", serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-mono: "Space Grotesk", ui-monospace, monospace;
+}
 
 :root {
   color-scheme: light;
-  --bg: #f8fafc;
+  --bg: #f8f9f8;
   --surface: #ffffff;
-  --text: #0f172a;
-  --muted: #64748b;
-  --primary: #0284c7;
-  --border: #e2e8f0;
+  --text: #10241e;
+  --muted: #5b6660;
+  --primary: #0b6e4f;
+  --border: #e9ece9;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  font-family: var(--font-sans);
   background: var(--bg);
   color: var(--text);
 }
@@ -38,11 +60,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--border);
   border-radius: 999px;
 }
 
@@ -67,20 +89,21 @@ body {
 
 .btn-primary {
   border-radius: 0.5rem;
-  background-color: #0284c7;
+  background-color: var(--primary);
   padding: 0.5rem 1rem;
   font-weight: 500;
+  font-family: var(--font-sans);
   color: #fff;
   transition: background-color 0.2s ease;
 }
 
 .btn-primary:hover {
-  background-color: #0369a1;
+  background-color: var(--color-brand-700);
 }
 
 .card-surface {
   border-radius: 1rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   background-color: #fff;
-  box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+  box-shadow: 0 1px 2px 0 rgb(16 36 30 / 0.05);
 }
