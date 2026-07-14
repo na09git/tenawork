@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <div className="overflow-hidden">
       <HeroSection />
-      <TrustedOrganizations />
+      {/* <TrustedOrganizations /> */}
       <FeaturesSection />
       <HowItWorksSection />
       <WhyChooseTenaWorkSection />
