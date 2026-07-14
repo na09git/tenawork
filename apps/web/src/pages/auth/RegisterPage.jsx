@@ -9,11 +9,22 @@ import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/ui/input/Input";
 
+/**
+ * RegisterPage — palette/type locked to match LoginPage and the rest of
+ * the site: text-ink for headings, text-slate-500 for secondary text,
+ * brand-600/700 for links and focus states (was sky-500/600, a leftover
+ * pre-rebrand default), font-display on the h2, font-sans everywhere else.
+ *
+ * The error text (text-rose-500) is left as-is deliberately — errors
+ * should stay a distinct semantic red rather than the brand color, so
+ * they're never mistaken for a normal UI state.
+ */
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const defaultRole = searchParams.get("role") === "Employer" ? "Employer" : "Professional";
-  
+  const defaultRole =
+    searchParams.get("role") === "Employer" ? "Employer" : "Professional";
+
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,7 +36,7 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       role: defaultRole,
-    }
+    },
   });
 
   const onSubmit = async (data) => {
@@ -33,23 +44,26 @@ export default function RegisterPage() {
       setIsLoading(true);
       // Map frontend roles to backend roles
       const apiRole = data.role === "Employer" ? "EMPLOYER" : "EMPLOYEE";
-      
+
       const { user, accessToken } = await registerUser({
         email: data.email,
         password: data.password,
-        role: apiRole
+        role: apiRole,
       });
-      
+
       login(user, accessToken);
       toast.success("Account created successfully!");
-      
+
       if (apiRole === "EMPLOYEE") {
         navigate("/dashboard/professional", { replace: true });
       } else {
         navigate("/dashboard/employer", { replace: true });
       }
     } catch (error) {
-      toast.error(error.response?.data?.error || "Failed to create account. Please try again.");
+      toast.error(
+        error.response?.data?.error ||
+          "Failed to create account. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -58,8 +72,10 @@ export default function RegisterPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-2xl font-semibold">Create account</h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <h2 className="font-display text-2xl font-medium text-ink">
+          Create account
+        </h2>
+        <p className="mt-1 font-sans text-sm text-slate-500">
           Join TenaWork as a professional or employer
         </p>
       </div>
@@ -90,23 +106,37 @@ export default function RegisterPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">Role</label>
-          <select 
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+          <label className="mb-1 block font-sans text-sm font-medium text-slate-700">
+            Role
+          </label>
+          <select
+            className="w-full rounded-lg border border-slate-100 px-3 py-2 font-sans text-ink focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600"
             {...register("role")}
           >
             <option value="Professional">Health Professional</option>
             <option value="Employer">Employer</option>
           </select>
-          {errors.role && <p className="mt-1 text-sm text-rose-500">{errors.role.message}</p>}
+          {errors.role && (
+            <p className="mt-1 font-sans text-sm text-rose-500">
+              {errors.role.message}
+            </p>
+          )}
         </div>
-        <Button type="submit" fullWidth loading={isLoading}>
+        <Button
+          type="submit"
+          fullWidth
+          loading={isLoading}
+          className="bg-brand-600 font-sans font-medium hover:bg-brand-700"
+        >
           Create account
         </Button>
       </form>
-      <p className="text-sm text-slate-600">
+      <p className="font-sans text-sm text-slate-500">
         Already have an account?{" "}
-        <Link to="/auth/login" className="font-semibold text-sky-600">
+        <Link
+          to="/auth/login"
+          className="font-semibold text-brand-600 transition-colors hover:text-brand-700"
+        >
           Sign in
         </Link>
       </p>
