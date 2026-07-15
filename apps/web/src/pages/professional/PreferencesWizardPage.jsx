@@ -9,6 +9,23 @@ import Input from "@/components/ui/input/Input";
 import Textarea from "@/components/ui/textarea/Textarea";
 import Badge from "@/components/ui/badge/Badge";
 
+/**
+ * PreferencesWizardPage — palette/type locked to match the rest of the
+ * site (sky-* → brand-*, slate-900/600/300/200 → ink/slate-500/slate-100).
+ *
+ * "Next Step" invisibility fix: same root cause as the earlier CTA
+ * button bug — Button's default variant almost certainly sets its own
+ * background/text color internally, and that was winning over (or
+ * matching) whatever this button needed, so text and background ended
+ * up the same color. Fixed the same way: forced with Tailwind's `!`
+ * important modifier so it can't lose regardless of Button's internal
+ * class order. Applied the same guard to "Back" and "Complete & Match"
+ * too, since they're built the same way and would hit the same bug.
+ *
+ * This is still a patch, not the real fix — Button.jsx needs a look
+ * when you get a chance so every screen using it doesn't need this
+ * override repeated.
+ */
 const STEPS = [
   "Work Basics",
   "Compensation & Location",
@@ -55,7 +72,7 @@ export default function PreferencesWizardPage() {
     if (current.includes(item)) {
       setValue(
         field,
-        current.filter((i) => i !== item)
+        current.filter((i) => i !== item),
       );
     } else {
       setValue(field, [...current, item]);
@@ -65,7 +82,7 @@ export default function PreferencesWizardPage() {
   const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
-      
+
       const formattedData = {
         ...data,
         salaryMin: data.salaryMin ? Number(data.salaryMin) : null,
@@ -87,28 +104,34 @@ export default function PreferencesWizardPage() {
       case 0: // Work Basics
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-slate-900">What kind of work are you looking for?</h3>
+            <h3 className="font-sans text-lg font-semibold text-ink">
+              What kind of work are you looking for?
+            </h3>
             <div className="grid gap-4 sm:grid-cols-2">
-              {["Full-time", "Part-time", "Contract", "Temporary"].map((type) => (
-                <div
-                  key={type}
-                  onClick={() => setValue("workType", type)}
-                  className={`cursor-pointer rounded-xl border p-4 transition-all ${
-                    formData.workType === type
-                      ? "border-sky-500 bg-sky-50 shadow-sm"
-                      : "border-slate-200 hover:border-sky-200 hover:bg-slate-50"
-                  }`}
-                >
-                  <div className="font-medium">{type}</div>
-                </div>
-              ))}
+              {["Full-time", "Part-time", "Contract", "Temporary"].map(
+                (type) => (
+                  <div
+                    key={type}
+                    onClick={() => setValue("workType", type)}
+                    className={`cursor-pointer rounded-xl border p-4 font-sans transition-all ${
+                      formData.workType === type
+                        ? "border-brand-600 bg-brand-50 shadow-sm"
+                        : "border-slate-100 hover:border-brand-100 hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="font-medium text-ink">{type}</div>
+                  </div>
+                ),
+              )}
             </div>
           </div>
         );
       case 1: // Compensation & Location
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-slate-900">Where and for how much?</h3>
+            <h3 className="font-sans text-lg font-semibold text-ink">
+              Where and for how much?
+            </h3>
             <Input
               label="Location (City)"
               placeholder="e.g. Addis Ababa"
@@ -133,11 +156,15 @@ export default function PreferencesWizardPage() {
       case 2: // Culture & Institution
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-slate-900">Preferred Environment</h3>
+            <h3 className="font-sans text-lg font-semibold text-ink">
+              Preferred environment
+            </h3>
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">Institution Type</label>
+              <label className="mb-2 block font-sans text-sm font-medium text-slate-700">
+                Institution Type
+              </label>
               <select
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                className="w-full rounded-lg border border-slate-100 px-3 py-2 font-sans text-ink focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600"
                 {...register("institutionType")}
               >
                 <option value="">Select an institution type</option>
@@ -149,14 +176,22 @@ export default function PreferencesWizardPage() {
               </select>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">Work Culture</label>
+              <label className="mb-2 block font-sans text-sm font-medium text-slate-700">
+                Work Culture
+              </label>
               <div className="grid gap-3 sm:grid-cols-3">
-                {["Collaborative", "Fast-paced", "Supportive", "Innovative", "Flexible"].map((cult) => (
+                {[
+                  "Collaborative",
+                  "Fast-paced",
+                  "Supportive",
+                  "Innovative",
+                  "Flexible",
+                ].map((cult) => (
                   <Badge
                     key={cult}
                     onClick={() => setValue("culture", cult)}
                     variant={formData.culture === cult ? "primary" : "default"}
-                    className="cursor-pointer justify-center py-2"
+                    className="cursor-pointer justify-center py-2 font-sans"
                   >
                     {cult}
                   </Badge>
@@ -168,16 +203,33 @@ export default function PreferencesWizardPage() {
       case 3: // Health Priorities & Languages
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-medium text-slate-900">Specialties and Languages</h3>
+            <h3 className="font-sans text-lg font-semibold text-ink">
+              Specialties and languages
+            </h3>
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">Health Priorities</label>
+              <label className="mb-2 block font-sans text-sm font-medium text-slate-700">
+                Health Priorities
+              </label>
               <div className="flex flex-wrap gap-2">
-                {["Primary Care", "Pediatrics", "Maternal Health", "Surgery", "Infectious Diseases", "Specialty Care"].map((priority) => (
+                {[
+                  "Primary Care",
+                  "Pediatrics",
+                  "Maternal Health",
+                  "Surgery",
+                  "Infectious Diseases",
+                  "Specialty Care",
+                ].map((priority) => (
                   <Badge
                     key={priority}
-                    onClick={() => toggleArrayItem("healthPriorities", priority)}
-                    variant={formData.healthPriorities?.includes(priority) ? "success" : "default"}
-                    className="cursor-pointer"
+                    onClick={() =>
+                      toggleArrayItem("healthPriorities", priority)
+                    }
+                    variant={
+                      formData.healthPriorities?.includes(priority)
+                        ? "success"
+                        : "default"
+                    }
+                    className="cursor-pointer font-sans"
                   >
                     {priority}
                   </Badge>
@@ -185,18 +237,26 @@ export default function PreferencesWizardPage() {
               </div>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">Languages</label>
+              <label className="mb-2 block font-sans text-sm font-medium text-slate-700">
+                Languages
+              </label>
               <div className="flex flex-wrap gap-2">
-                {["Amharic", "English", "Oromo", "Tigrinya", "Somali"].map((lang) => (
-                  <Badge
-                    key={lang}
-                    onClick={() => toggleArrayItem("languages", lang)}
-                    variant={formData.languages?.includes(lang) ? "success" : "default"}
-                    className="cursor-pointer"
-                  >
-                    {lang}
-                  </Badge>
-                ))}
+                {["Amharic", "English", "Oromo", "Tigrinya", "Somali"].map(
+                  (lang) => (
+                    <Badge
+                      key={lang}
+                      onClick={() => toggleArrayItem("languages", lang)}
+                      variant={
+                        formData.languages?.includes(lang)
+                          ? "success"
+                          : "default"
+                      }
+                      className="cursor-pointer font-sans"
+                    >
+                      {lang}
+                    </Badge>
+                  ),
+                )}
               </div>
             </div>
           </div>
@@ -204,7 +264,9 @@ export default function PreferencesWizardPage() {
       case 4: // Free Text
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-slate-900">Anything else?</h3>
+            <h3 className="font-sans text-lg font-semibold text-ink">
+              Anything else?
+            </h3>
             <Textarea
               label="Additional Notes (Free Text)"
               placeholder="Tell employers about your specific skills, experience, or anything else that might help AI match you better."
@@ -219,17 +281,21 @@ export default function PreferencesWizardPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <div className="mx-auto max-w-2xl rounded-2xl border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
       {/* Progress */}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-slate-900">Your Preferences</h2>
-        <p className="text-slate-500">Step {currentStep + 1} of {STEPS.length}: {STEPS[currentStep]}</p>
+        <h2 className="font-display text-2xl font-medium text-ink">
+          Your preferences
+        </h2>
+        <p className="font-sans text-slate-500">
+          Step {currentStep + 1} of {STEPS.length}: {STEPS[currentStep]}
+        </p>
         <div className="mt-4 flex gap-2">
           {STEPS.map((_, i) => (
             <div
               key={i}
-              className={`h-2 flex-1 rounded-full ${
-                i <= currentStep ? "bg-sky-500" : "bg-slate-100"
+              className={`h-2 flex-1 rounded-full transition-colors ${
+                i <= currentStep ? "bg-brand-600" : "bg-slate-100"
               }`}
             />
           ))}
@@ -255,16 +321,26 @@ export default function PreferencesWizardPage() {
             variant="ghost"
             onClick={handleBack}
             disabled={currentStep === 0 || isSubmitting}
+            className="font-sans !text-slate-500 hover:!text-ink"
           >
             Back
           </Button>
 
           {currentStep === STEPS.length - 1 ? (
-            <Button type="submit" variant="success" loading={isSubmitting}>
-              Complete & Match
+            <Button
+              type="submit"
+              variant="success"
+              loading={isSubmitting}
+              className="font-sans font-medium !text-white"
+            >
+              Complete &amp; Match
             </Button>
           ) : (
-            <Button type="button" onClick={handleNext}>
+            <Button
+              type="button"
+              onClick={handleNext}
+              className="!bg-brand-600 font-sans font-medium !text-white hover:!bg-brand-700"
+            >
               Next Step
             </Button>
           )}
