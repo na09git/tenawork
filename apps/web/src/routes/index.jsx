@@ -18,6 +18,9 @@ const ProfessionalDashboardPage = lazy(
 const PreferencesWizardPage = lazy(
   () => import("@/pages/professional/PreferencesWizardPage"),
 );
+const ProfilePage = lazy(
+  () => import("@/pages/professional/ProfilePage"),
+);
 const MatchResultsPage = lazy(
   () => import("@/pages/professional/MatchResultsPage"),
 );
@@ -78,6 +81,14 @@ const router = createBrowserRouter([
             element: (
               <RoleRoute allowedRoles={["EMPLOYEE"]}>
                 <ProfessionalDashboardPage />
+              </RoleRoute>
+            ),
+          },
+          {
+            path: "professional/settings",
+            element: (
+              <RoleRoute allowedRoles={["EMPLOYEE"]}>
+                <ProfilePage />
               </RoleRoute>
             ),
           },

@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { updateEmployeeProfile } from "@/services/employeeService";
+import { updateEmployeeProfile, getEmployeeProfile } from "@/services/employeeService";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/ui/input/Input";
 import Textarea from "@/components/ui/textarea/Textarea";
@@ -37,9 +37,10 @@ const STEPS = [
 export default function PreferencesWizardPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  const { register, handleSubmit, watch, setValue } = useForm({
+  const { register, handleSubmit, watch, setValue, reset } = useForm({
     defaultValues: {
       location: "",
       workType: "",
@@ -54,6 +55,34 @@ export default function PreferencesWizardPage() {
   });
 
   const formData = watch();
+
+  useEffect(() => {
+    const fetchExisting = async () => {
+      try {
+        const data = await getEmployeeProfile();
+        if (data) {
+          reset({
+            location: data.location || "",
+            workType: data.work_type || "",
+            salaryMin: data.salary_min || "",
+            salaryMax: data.salary_max || "",
+            institutionType: data.institution_type || "",
+            languages: data.languages || [],
+            culture: data.culture || "",
+            healthPriorities: data.health_priorities || [],
+            freeText: data.free_text || "",
+          });
+        }
+      } catch (error) {
+        if (error.response?.status !== 404) {
+          console.error("Failed to fetch preferences:", error);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchExisting();
+  }, [reset]);
 
   const handleNext = () => {
     if (currentStep < STEPS.length - 1) {
@@ -302,8 +331,13 @@ export default function PreferencesWizardPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <AnimatePresence mode="wait">
+      {isLoading ? (
+        <div className="flex h-64 items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
             initial={{ opacity: 0, x: 20 }}
@@ -346,6 +380,7 @@ export default function PreferencesWizardPage() {
           )}
         </div>
       </form>
+      )}
     </div>
   );
 }

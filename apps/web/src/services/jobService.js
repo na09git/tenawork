@@ -15,9 +15,11 @@ export const getJobs = async (filters = {}) => {
   const params = new URLSearchParams();
   if (filters.location) params.set("location", filters.location);
   if (filters.workType) params.set("workType", filters.workType);
-  if (filters.institutionType) params.set("institutionType", filters.institutionType);
+  if (filters.institutionType)
+    params.set("institutionType", filters.institutionType);
 
   const res = await api.get(`/api/jobs?${params.toString()}`);
+  console.log("Jobs from api", res.data.data);
   return res.data.data;
 };
 

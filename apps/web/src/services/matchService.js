@@ -39,5 +39,6 @@ export const getEmployeeMatches = async () => {
  */
 export const getEmployerMatches = async (desiredProfile) => {
   const res = await api.post("/api/match/employer", { desiredProfile });
+  console.log(" Matches from api", res.data.data);
   return res.data.data;
 };
