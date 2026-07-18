@@ -10,6 +10,8 @@ import {
   Bookmark,
 } from "lucide-react";
 import { getJobById } from "@/services/jobService";
+import { applyToJob, getMyApplications } from "@/services/applicationService";
+import toast from "react-hot-toast";
 import Button from "@/components/ui/button/Button";
 import Badge from "@/components/ui/badge/Badge";
 
@@ -42,12 +44,17 @@ export default function JobDetailPage() {
   // Local state for features without backend endpoints yet
   const [isSaved, setIsSaved] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
 
   useEffect(() => {
     const fetchJob = async () => {
       try {
-        const data = await getJobById(id);
-        setJob(data);
+        const [jobData, appsData] = await Promise.all([
+          getJobById(id),
+          getMyApplications().catch(() => []) // swallow error for apps list if it fails
+        ]);
+        setJob(jobData);
+        setHasApplied(appsData.some((app) => app.jobId === id));
       } catch (err) {
         setError("Failed to load job details.");
       } finally {
@@ -56,6 +63,19 @@ export default function JobDetailPage() {
     };
     fetchJob();
   }, [id]);
+
+  const handleApply = async () => {
+    try {
+      setIsApplying(true);
+      await applyToJob(id);
+      setHasApplied(true);
+      toast.success("Application sent successfully!");
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Failed to apply.");
+    } finally {
+      setIsApplying(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -143,11 +163,12 @@ export default function JobDetailPage() {
               variant={hasApplied ? "success" : "primary"}
               className={
                 hasApplied
-                  ? "flex-1 font-sans font-medium sm:flex-none"
-                  : "flex-1 bg-brand-600 font-sans font-medium hover:bg-brand-700 sm:flex-none"
+                  ? "flex-1 font-sans font-medium sm:flex-none !text-white"
+                  : "flex-1 !bg-brand-600 font-sans font-medium hover:!bg-brand-700 sm:flex-none !text-white"
               }
-              onClick={() => setHasApplied(true)}
-              disabled={hasApplied}
+              onClick={handleApply}
+              disabled={hasApplied || isApplying}
+              loading={isApplying}
             >
               {hasApplied ? (
                 <>

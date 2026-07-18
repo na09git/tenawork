@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Building2,
@@ -15,6 +15,7 @@ import Card, {
   CardContent,
 } from "@/components/ui/card/Card";
 import Badge from "@/components/ui/badge/Badge";
+import { getMyApplications } from "@/services/applicationService";
 
 /**
  * MyApplicationsPage — palette/type locked to match the rest of the site.
@@ -35,33 +36,27 @@ import Badge from "@/components/ui/badge/Badge";
  * same as any other mock data still in the app.
  */
 export default function MyApplicationsPage() {
-  // Mock data for v1 since no backend endpoint exists
-  const [applications] = useState([
-    {
-      id: "1",
-      jobTitle: "Senior Registered Nurse",
-      institution: "Addis General Hospital",
-      location: "Addis Ababa",
-      dateApplied: "2024-02-15",
-      status: "Reviewing",
-    },
-    {
-      id: "2",
-      jobTitle: "Pediatric Specialist",
-      institution: "Hawassa Health Center",
-      location: "Hawassa",
-      dateApplied: "2024-02-10",
-      status: "Interviewing",
-    },
-    {
-      id: "3",
-      jobTitle: "General Practitioner",
-      institution: "Dire Dawa Clinic",
-      location: "Dire Dawa",
-      dateApplied: "2024-01-20",
-      status: "Rejected",
-    },
-  ]);
+  const [applications, setApplications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const data = await getMyApplications();
+        // date formatting (optional but good practice)
+        const formatted = data.map(app => ({
+          ...app,
+          dateApplied: new Date(app.dateApplied).toLocaleDateString()
+        }));
+        setApplications(formatted);
+      } catch (error) {
+        console.error("Failed to load applications:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchApplications();
+  }, []);
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -108,7 +103,11 @@ export default function MyApplicationsPage() {
       </div>
 
       <div className="grid gap-4">
-        {applications.length > 0 ? (
+        {isLoading ? (
+          <div className="flex h-32 items-center justify-center">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
+          </div>
+        ) : applications.length > 0 ? (
           applications.map((app) => (
             <Card
               key={app.id}
@@ -140,7 +139,7 @@ export default function MyApplicationsPage() {
                     </div>
                   </div>
                   <div>
-                    <Link to={`/dashboard/jobs/${app.id}`}>
+                    <Link to={`/dashboard/jobs/${app.jobId}`}>
                       <Button
                         variant="outline"
                         className="border-brand-600 font-sans font-medium text-brand-700 hover:bg-brand-50"
