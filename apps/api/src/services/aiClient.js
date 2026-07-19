@@ -23,7 +23,7 @@ const matchEmployee = async (preferences, jobs) => {
 const matchEmployer = async (desiredProfile, candidates) => {
   try {
     const response = await aiClient.post('/match/employer', {
-      desiredProfile,
+      desired_profile: desiredProfile,
       candidates,
     });
     return response.data;

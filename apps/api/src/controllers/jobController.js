@@ -4,14 +4,18 @@ const { query } = require('../config/db');
 
 const getJobs = async (req, res, next) => {
   try {
-    const { location, workType, institutionType } = req.query;
+    const { location, workType, institutionType, keyword, salaryMin, salaryMax } = req.query;
 
     let sql = `SELECT * FROM jobs WHERE is_active = true`;
     const params = [];
 
+    if (keyword) {
+      params.push(`%${keyword}%`);
+      sql += ` AND title ILIKE $${params.length}`;
+    }
     if (location) {
       params.push(location);
-      sql += ` AND location = $${params.length}`;
+      sql += ` AND location ILIKE $${params.length}`;
     }
     if (workType) {
       params.push(workType);
@@ -21,10 +25,51 @@ const getJobs = async (req, res, next) => {
       params.push(institutionType);
       sql += ` AND institution_type = $${params.length}`;
     }
+    if (salaryMin) {
+      params.push(Number(salaryMin));
+      sql += ` AND salary_max >= $${params.length}`;
+    }
+    if (salaryMax) {
+      params.push(Number(salaryMax));
+      sql += ` AND salary_min <= $${params.length}`;
+    }
 
     sql += ` ORDER BY created_at DESC`;
 
     const result = await query(sql, params);
+
+    res.json({
+      success: true,
+      data: result.rows,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /employers/me/jobs
+ * Returns all jobs posted by the authenticated employer,
+ * including applicant counts, ordered newest first.
+ */
+const getMyJobs = async (req, res, next) => {
+  try {
+    if (req.user.role !== 'EMPLOYER') {
+      return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+
+    const employerId = req.user.id;
+
+    const result = await query(
+      `SELECT j.*,
+              COUNT(a.id)::int AS applicant_count
+       FROM jobs j
+       LEFT JOIN applications a ON a.job_id = j.id
+       WHERE j.employer_id = $1
+       GROUP BY j.id
+       ORDER BY j.created_at DESC`,
+      [employerId]
+    );
 
     res.json({
       success: true,
@@ -190,6 +235,7 @@ const deleteJob = async (req, res, next) => {
 
 module.exports = {
   getJobs,
+  getMyJobs,
   getJobById,
   createJob,
   updateJob,

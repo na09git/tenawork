@@ -153,6 +153,18 @@ BEFORE UPDATE ON applications
 FOR EACH ROW
 EXECUTE FUNCTION trigger_set_timestamp();
 
+-- DISMISSED_MATCHES Table
+-- Records AI-match dismissals by professionals. A dismissed job is excluded
+-- from the next getEmployeeMatches response, so it doesn't reappear on refresh.
+-- The unique constraint prevents double-inserting the same dismissal.
+CREATE TABLE dismissed_matches (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT unique_dismissed_match UNIQUE (user_id, job_id)
+);
+
 -- RECOMMENDATION_HISTORY Table
 -- Stores snapshots of AI recommendations to track the model's performance and inputs over time.
 CREATE TABLE recommendation_history (
@@ -223,6 +235,9 @@ CREATE INDEX idx_jobs_active ON jobs(status) WHERE deleted_at IS NULL;
 -- Applications
 CREATE INDEX idx_applications_job_id ON applications(job_id);
 CREATE INDEX idx_applications_prof_id ON applications(professional_id);
+
+-- Dismissed Matches
+CREATE INDEX idx_dismissed_matches_user_id ON dismissed_matches(user_id);
 
 -- Recommendations
 CREATE INDEX idx_recommendations_prof_id ON recommendation_history(professional_id);

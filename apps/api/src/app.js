@@ -9,6 +9,7 @@ const employeeRoutes = require("./routes/employees");
 const employerRoutes = require("./routes/employers");
 const jobRoutes = require("./routes/jobs");
 const matchRoutes = require("./routes/match");
+const applicationRoutes = require("./routes/applications");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -28,6 +29,7 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/employers", employerRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/match", matchRoutes);
+app.use("/api/applications", applicationRoutes);
 
 // Error Handling
 app.use(errorHandler);

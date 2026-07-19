@@ -23,8 +23,13 @@ const getEmployeeMatches = async (req, res, next) => {
 
     const profile = profileResult.rows[0];
 
-    // Get all active jobs
-    const jobsResult = await query(`SELECT * FROM jobs WHERE is_active = true`);
+    // Get all active jobs NOT dismissed by this user
+    const jobsResult = await query(
+      `SELECT * FROM jobs 
+       WHERE is_active = true 
+         AND id NOT IN (SELECT job_id FROM dismissed_matches WHERE user_id = $1)`,
+      [userId]
+    );
     const jobs = jobsResult.rows;
 
     if (jobs.length === 0) {
@@ -44,7 +49,7 @@ const getEmployeeMatches = async (req, res, next) => {
     // We'll map them just in case they only have jobId.
 
     const topMatches = matches.slice(0, 3).map(match => {
-      const fullJob = jobs.find(j => j.id === (match.jobId || match.id));
+      const fullJob = jobs.find(j => j.id === (match.job_id || match.jobId || match.id));
       return {
         ...fullJob,
         ...match,
@@ -87,7 +92,7 @@ const getEmployerMatches = async (req, res, next) => {
 
     // The prompt says "return top 10 matches with candidate details merged in"
     const topMatches = matches.slice(0, 10).map(match => {
-      const fullCandidate = candidates.find(c => c.id === (match.candidateId || match.id));
+      const fullCandidate = candidates.find(c => c.id === (match.candidate_id || match.candidateId || match.id));
       return {
         ...fullCandidate,
         ...match,
@@ -103,7 +108,55 @@ const getEmployerMatches = async (req, res, next) => {
   }
 };
 
+const dismissMatch = async (req, res, next) => {
+  try {
+    if (req.user.role !== 'EMPLOYEE') {
+      return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+    const userId = req.user.id;
+    const { jobId } = req.body;
+    
+    if (!jobId) {
+      return res.status(400).json({ success: false, error: 'Job ID is required' });
+    }
+
+    await query(
+      `INSERT INTO dismissed_matches (user_id, job_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+      [userId, jobId]
+    );
+
+    res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const restoreMatch = async (req, res, next) => {
+  try {
+    if (req.user.role !== 'EMPLOYEE') {
+      return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+    const userId = req.user.id;
+    const { jobId } = req.body;
+    
+    if (!jobId) {
+      return res.status(400).json({ success: false, error: 'Job ID is required' });
+    }
+
+    await query(
+      `DELETE FROM dismissed_matches WHERE user_id = $1 AND job_id = $2`,
+      [userId, jobId]
+    );
+
+    res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getEmployeeMatches,
   getEmployerMatches,
+  dismissMatch,
+  restoreMatch,
 };
