@@ -9,7 +9,7 @@ import {
   Trash2,
   ArrowRight,
 } from "lucide-react";
-import { getEmployeeMatches } from "@/services/matchService";
+import { getEmployeeMatches, dismissMatch, restoreMatch } from "@/services/matchService";
 import { applyToJob, getMyApplications } from "@/services/applicationService";
 import toast from "react-hot-toast";
 import Button from "@/components/ui/button/Button";
@@ -30,10 +30,11 @@ import Badge from "@/components/ui/badge/Badge";
  * different signal (weak match) needs a genuinely different color,
  * same reasoning as error states elsewhere.
  *
- * Delete: no backend endpoint exists yet for dismissing a match (see
- * TODO below) — implemented as an optimistic local removal with an
- * undo-via-toast pattern so the UI works now and can be wired to a
- * real DELETE/dismiss endpoint later without changing the interaction.
+ * Dismiss/Restore: persisted via POST /api/match/dismiss and
+ * POST /api/match/restore. Uses optimistic local removal — the row
+ * disappears immediately on click for responsiveness, then rolls back
+ * if the backend request fails. Dismissed jobs are excluded from the
+ * next fetch of getEmployeeMatches, so they do not reappear on refresh.
  */
 const ScoreBadge = ({ score }) => {
   const percentage = Math.round((score || 0) * 100);
@@ -103,24 +104,32 @@ export default function MatchResultsPage() {
     const previous = matches;
     setMatches((current) => current.filter((m) => m.id !== job.id));
 
-    // TODO: no dismiss/delete endpoint exists yet in matchService — this
-    // is optimistic-local-only for now. Once a real endpoint exists
-    // (e.g. dismissMatch(job.id)), call it here and roll back `matches`
-    // to `previous` in a catch block if it fails.
-    toast((t) => (
-      <div className="flex items-center gap-3">
-        <span className="font-sans text-sm text-ink">Match removed</span>
-        <button
-          onClick={() => {
-            setMatches(previous);
-            toast.dismiss(t.id);
-          }}
-          className="font-sans text-sm font-semibold text-brand-600 hover:text-brand-700"
-        >
-          Undo
-        </button>
-      </div>
-    ));
+    try {
+      await dismissMatch(job.id);
+      
+      toast((t) => (
+        <div className="flex items-center gap-3">
+          <span className="font-sans text-sm text-ink">Match removed</span>
+          <button
+            onClick={async () => {
+              try {
+                await restoreMatch(job.id);
+                setMatches(previous);
+                toast.dismiss(t.id);
+              } catch (err) {
+                toast.error("Failed to restore match.");
+              }
+            }}
+            className="font-sans text-sm font-semibold text-brand-600 hover:text-brand-700"
+          >
+            Undo
+          </button>
+        </div>
+      ));
+    } catch (error) {
+      setMatches(previous);
+      toast.error("Failed to remove match.");
+    }
   };
 
   if (isLoading) {

@@ -42,3 +42,21 @@ export const getEmployerMatches = async (desiredProfile) => {
   console.log(" Matches from api", res.data.data);
   return res.data.data;
 };
+
+/**
+ * Dismiss a job match for the professional.
+ * @param {string} jobId
+ */
+export const dismissMatch = async (jobId) => {
+  const res = await api.post("/api/match/dismiss", { jobId });
+  return res.data;
+};
+
+/**
+ * Restore a previously dismissed job match.
+ * @param {string} jobId
+ */
+export const restoreMatch = async (jobId) => {
+  const res = await api.post("/api/match/restore", { jobId });
+  return res.data;
+};

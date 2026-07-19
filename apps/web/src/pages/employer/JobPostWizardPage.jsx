@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { createJob } from "@/services/jobService";
+import { createJob, updateJob, getJobById } from "@/services/jobService";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/ui/input/Input";
 import Textarea from "@/components/ui/textarea/Textarea";
@@ -16,6 +16,10 @@ import Badge from "@/components/ui/badge/Badge";
  * same conventions: font-display on the page h2, font-sans/semibold on
  * step titles (h3), `!important`-guarded Button colors (confirmed bug,
  * see PreferencesWizardPage notes).
+ *
+ * Edit mode: when a :jobId route param is present, the wizard fetches
+ * the existing job, pre-fills all fields, and calls updateJob on submit
+ * instead of createJob. The title and submit copy reflect the mode.
  */
 const STEPS = [
   "Job Basics",
@@ -26,11 +30,15 @@ const STEPS = [
 ];
 
 export default function JobPostWizardPage() {
+  const { jobId } = useParams();
+  const isEditMode = Boolean(jobId);
+
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingJob, setIsLoadingJob] = useState(isEditMode);
   const navigate = useNavigate();
 
-  const { register, handleSubmit, watch, setValue } = useForm({
+  const { register, handleSubmit, watch, setValue, reset } = useForm({
     defaultValues: {
       title: "",
       location: "",
@@ -44,6 +52,28 @@ export default function JobPostWizardPage() {
       description: "",
     },
   });
+
+  // In edit mode, fetch the existing job and pre-fill
+  useEffect(() => {
+    if (!isEditMode) return;
+    getJobById(jobId)
+      .then((job) => {
+        reset({
+          title: job.title ?? "",
+          location: job.location ?? "",
+          workType: job.work_type ?? "",
+          salaryMin: job.salary_min ?? "",
+          salaryMax: job.salary_max ?? "",
+          institutionType: job.institution_type ?? "",
+          languages: job.languages ?? [],
+          culture: job.culture ?? "",
+          healthPriorities: job.health_priorities ?? [],
+          description: job.description ?? "",
+        });
+      })
+      .catch(() => toast.error("Failed to load job for editing."))
+      .finally(() => setIsLoadingJob(false));
+  }, [isEditMode, jobId, reset]);
 
   const formData = watch();
 
@@ -62,10 +92,7 @@ export default function JobPostWizardPage() {
   const toggleArrayItem = (field, item) => {
     const current = formData[field] || [];
     if (current.includes(item)) {
-      setValue(
-        field,
-        current.filter((i) => i !== item),
-      );
+      setValue(field, current.filter((i) => i !== item));
     } else {
       setValue(field, [...current, item]);
     }
@@ -81,15 +108,34 @@ export default function JobPostWizardPage() {
         salaryMax: data.salaryMax ? Number(data.salaryMax) : 0,
       };
 
-      await createJob(formattedData);
-      toast.success("Job posted successfully!");
-      navigate("/dashboard/employer");
+      if (isEditMode) {
+        await updateJob(jobId, formattedData);
+        toast.success("Job updated successfully!");
+        navigate("/dashboard/employer/jobs");
+      } else {
+        await createJob(formattedData);
+        toast.success("Job posted successfully!");
+        navigate("/dashboard/employer/jobs");
+      }
     } catch (error) {
-      toast.error(error.response?.data?.error || "Failed to post job.");
+      toast.error(error.response?.data?.error || (isEditMode ? "Failed to update job." : "Failed to post job."));
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoadingJob) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <div
+          className="h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent"
+          role="status"
+          aria-label="Loading job"
+        />
+      </div>
+    );
+  }
+
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -287,7 +333,7 @@ export default function JobPostWizardPage() {
       {/* Progress */}
       <div className="mb-8">
         <h2 className="font-display text-2xl font-medium text-ink">
-          Post a new job
+          {isEditMode ? "Edit job posting" : "Post a new job"}
         </h2>
         <p className="font-sans text-slate-500">
           Step {currentStep + 1} of {STEPS.length}: {STEPS[currentStep]}
@@ -335,7 +381,7 @@ export default function JobPostWizardPage() {
               loading={isSubmitting}
               className="font-sans font-medium !text-white"
             >
-              Post job
+              {isEditMode ? "Save changes" : "Post job"}
             </Button>
           ) : (
             <Button

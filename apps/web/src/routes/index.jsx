@@ -27,6 +27,9 @@ const MatchResultsPage = lazy(
 const JobDetailPage = lazy(
   () => import("@/pages/professional/JobDetailPage"),
 );
+const JobSearchPage = lazy(
+  () => import("@/pages/professional/JobSearchPage"),
+);
 const EmployerDashboardPage = lazy(
   () => import("@/pages/employer/DashboardPage"),
 );
@@ -38,6 +41,9 @@ const CandidateResultsPage = lazy(
 );
 const CandidateDetailPage = lazy(
   () => import("@/pages/employer/CandidateDetailPage"),
+);
+const EmployerJobListingsPage = lazy(
+  () => import("@/pages/employer/EmployerJobListingsPage"),
 );
 const MyApplicationsPage = lazy(
   () => import("@/pages/professional/MyApplicationsPage"),
@@ -157,10 +163,34 @@ const router = createBrowserRouter([
             ),
           },
           {
+            path: "professional/jobs",
+            element: (
+              <RoleRoute allowedRoles={["EMPLOYEE"]}>
+                <JobSearchPage />
+              </RoleRoute>
+            ),
+          },
+          {
             path: "employer/contacts",
             element: (
               <RoleRoute allowedRoles={["EMPLOYER"]}>
                 <ContactedCandidatesPage />
+              </RoleRoute>
+            ),
+          },
+          {
+            path: "employer/jobs",
+            element: (
+              <RoleRoute allowedRoles={["EMPLOYER"]}>
+                <EmployerJobListingsPage />
+              </RoleRoute>
+            ),
+          },
+          {
+            path: "employer/edit-job/:jobId",
+            element: (
+              <RoleRoute allowedRoles={["EMPLOYER"]}>
+                <JobPostWizardPage />
               </RoleRoute>
             ),
           },

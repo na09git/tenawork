@@ -8,18 +8,37 @@ import api from "@/lib/axios";
 
 /**
  * List all active jobs with optional filters.
- * @param {{ location?: string, workType?: string, institutionType?: string }} filters
+ * @param {{
+ *   location?: string,
+ *   workType?: string,
+ *   institutionType?: string,
+ *   keyword?: string,
+ *   salaryMin?: number,
+ *   salaryMax?: number,
+ * }} filters
  * @returns {object[]} Array of job objects
  */
 export const getJobs = async (filters = {}) => {
   const params = new URLSearchParams();
+  if (filters.keyword) params.set("keyword", filters.keyword);
   if (filters.location) params.set("location", filters.location);
   if (filters.workType) params.set("workType", filters.workType);
-  if (filters.institutionType)
-    params.set("institutionType", filters.institutionType);
+  if (filters.institutionType) params.set("institutionType", filters.institutionType);
+  if (filters.salaryMin) params.set("salaryMin", String(filters.salaryMin));
+  if (filters.salaryMax) params.set("salaryMax", String(filters.salaryMax));
 
   const res = await api.get(`/api/jobs?${params.toString()}`);
-  console.log("Jobs from api", res.data.data);
+  return res.data.data;
+};
+
+/**
+ * Get all jobs posted by the authenticated employer,
+ * including applicant counts.
+ * @returns {Array<{ id, title, location, work_type, salary_min, salary_max,
+ *   institution_type, is_active, applicant_count, created_at }>}
+ */
+export const getMyJobs = async () => {
+  const res = await api.get("/api/employers/me/jobs");
   return res.data.data;
 };
 
@@ -35,7 +54,7 @@ export const getJobById = async (id) => {
 
 /**
  * Create a new job posting (EMPLOYER only).
- * @param {{
+ * @param {{\
  *   title: string,
  *   location: string,
  *   workType: string,
@@ -66,7 +85,8 @@ export const updateJob = async (id, data) => {
 };
 
 /**
- * Soft-delete a job (EMPLOYER only, must own the job).
+ * Soft-delete a job (sets is_active = false). EMPLOYER only, must own the job.
+ * Existing applications are preserved — this closes the posting, not destroys it.
  * @param {string} id - Job UUID
  * @returns {{ success: boolean }}
  */
